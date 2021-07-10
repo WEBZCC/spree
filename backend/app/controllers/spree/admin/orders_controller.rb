@@ -1,6 +1,8 @@
 module Spree
   module Admin
     class OrdersController < Spree::Admin::BaseController
+      include Spree::Admin::OrderConcern
+
       before_action :initialize_order_events
       before_action :load_order, only: %i[
         edit update cancel resume approve resend open_adjustments
@@ -160,7 +162,7 @@ module Spree
       private
 
       def scope
-        current_store.orders
+        current_store.orders.accessible_by(current_ability, :index)
       end
 
       def order_params
@@ -169,7 +171,7 @@ module Spree
       end
 
       def load_order
-        @order = Spree::Order.includes(:adjustments).find_by!(number: params[:id])
+        @order = scope.includes(:adjustments).find_by!(number: params[:id])
         authorize! action, @order
       end
 
